@@ -69,7 +69,7 @@ class WorkerController extends LaravelController
         $body = $this->validateBody($request, $laravel);
         
         $decoded = json_decode($body);
-        $unserialized = unserialize($data['data']);
+        $unserialized = unserialize($decoded['data']);
         
         \Bugsnag::notifyError('job', 'start', [
             'unserialized' => $unserialized,
