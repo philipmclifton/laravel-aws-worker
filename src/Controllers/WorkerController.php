@@ -67,18 +67,17 @@ class WorkerController extends LaravelController
     {
         //$this->validateHeaders($request);
         $body = $this->validateBody($request, $laravel);
-        
-        $decoded = json_decode($body);
-        $unserialized = unserialize($decoded['data']);
-        
-        \Bugsnag::notifyError('job', 'start', [
-            'unserialized' => $unserialized,
-        ]);
-        
-        \Newrelic::setAppName('Jobs', env('NEWRELIC'));
-//         \Newrelic::nameTransaction('Job:' . $report->reportable->name);
-//         \Newrelic::addCustomParameter('School', $report->school->name);
 
+        $decoded = json_decode($body);
+        $unserialized = unserialize($decoded->data->command);
+
+
+        \Newrelic::setAppName('Jobs', env('NEWRELIC'));
+        
+        if(!empty($unserialized->report['reportable_type'])) {
+            \Newrelic::nameTransaction('Job:' . $unserialized->report['reportable_type']);
+        }
+        
         $job = new AwsJob($laravel, $request->header('X-Aws-Sqsd-Queue'), [
             'Body' => $body,
             'MessageId' => $request->header('X-Aws-Sqsd-Msgid'),
@@ -157,7 +156,7 @@ class WorkerController extends LaravelController
             'data' => $request->getContent()
         ]);
     }
-    
+
     /**
      * @param array $messages
      * @param int $code
