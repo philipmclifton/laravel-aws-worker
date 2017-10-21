@@ -71,11 +71,10 @@ class WorkerController extends LaravelController
         $decoded = json_decode($body);
         $unserialized = unserialize($decoded->data->command);
 
-
         \Newrelic::setAppName('Jobs', env('NEWRELIC'));
         
         if(!empty($unserialized->report['reportable_type'])) {
-            \Newrelic::nameTransaction('Job:' . $unserialized->report['reportable_type']);
+            \Newrelic::nameTransaction('Job:' . $unserialized->report['reportable_type'] . ':' . $unserialized->report['reportable_id']);
         }
         
         $job = new AwsJob($laravel, $request->header('X-Aws-Sqsd-Queue'), [
