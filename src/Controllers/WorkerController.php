@@ -67,6 +67,16 @@ class WorkerController extends LaravelController
     {
         //$this->validateHeaders($request);
         $body = $this->validateBody($request, $laravel);
+        
+        $decoded = json_decode($body);
+        $unserialized = unserialize($data['data']);
+        
+        \Bugsnag::notifyError('job', 'start', [
+            'unserialized' => $unserialized,
+        ]);
+        
+        \Newrelic::nameTransaction('Job:' . $report->reportable->name);
+        \Newrelic::addCustomParameter('School', $report->school->name);
 
         $job = new AwsJob($laravel, $request->header('X-Aws-Sqsd-Queue'), [
             'Body' => $body,
